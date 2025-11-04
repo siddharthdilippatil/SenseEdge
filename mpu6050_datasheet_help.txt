@@ -1,4 +1,4 @@
-# InvenSense MPU6050 Product Specification DataSheet
+### InvenSense MPU6050 Product Specification DataSheet
 
     6.7 I2C TIMING CHARACTERIZATION.............................................. 18
     7.4 RECOMMENDED POWER-ON PROCEDURE .......................................... 23
@@ -11,7 +11,7 @@
     11 AXES ORIENTATION ......................................................... 40
     * IMP READ 9.2 I2C COMMUNICATION *
 
-# InvenSense MPU6050 Register Map DataSheet
+### InvenSense MPU6050 Register Map DataSheet
 
     4.32 WHO_AM_I ............................................................... 45
     3 Register Map ....................................................... (Imp) 6-7

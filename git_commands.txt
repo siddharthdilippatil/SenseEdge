@@ -1,0 +1,26 @@
+### Working in feature branch
+    0. * git clone [copy repo url from ur github acc.] *
+    # Before starting new work 
+        1. git checkout main
+        2. git pull origin main
+
+    # Create feature branch for work
+        3. git checkout -b feature/urName 
+        (creates a feature branch named "urName")
+        // do your work
+        4. git add .
+        5. git commit -m "your work"
+        // this will update your work on your branch on your local repo
+        // next step is usually git push (but you cant directly git push)
+        // but before uploading work make sure your local repo is up to date by doing 
+        6. git pull origin main (* very imp to avoid merge conflicts *)
+        // now you can push your work by creating a PR request
+        7. git push origin feature/urName -u (-u is one time thing)
+
+    # Create a PR request
+        1. Go to repository on github
+        2. In your branch there will be banner named "Open a pull request" 
+        3. Select main as base branch and urName as compare branch, add a description then click "Create Pull Request"
+
+
+
