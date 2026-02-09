@@ -12,15 +12,19 @@
             status = "okay";
 
             mpu6050@68 {
-                compatible = "SenseEdge,mpu6050";
+                compatible = "senseedge,mpu6050";
                 reg = <0x68>;
 
+                /* GPIO1_28 -> P9_12, rising edge */
                 interrupt-parent = <&gpio1>;
-                interrupts = <28 1>; /* GPIO1_28, rising edge */
+                interrupts = <28 0x01>;
+
+                sampling-rate-hz = <100>;
+                accel-range = <2>;
+                gyro-range  = <250>;
 
                 status = "okay";
             };
         };
     };
 };
-

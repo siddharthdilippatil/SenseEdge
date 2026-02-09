@@ -75,6 +75,7 @@ static int mpu6050_read_burst(struct i2c_client *client,
     struct i2c_msg msgs[2] = {
         {client->addr, 0, 1, &reg},
         {client->addr, I2C_M_RD, len, buf}};
+
     return (i2c_transfer(client->adapter, msgs, 2) == 2) ? 0 : -EIO;
 }
 
@@ -89,11 +90,20 @@ static void mpu6050_parse_dt(struct device *dev, struct mpu6050_dev *mpu)
     mpu->gyro_range_dps = 250;
 
     if (!np)
+    {
+        dev_warn(dev, "no device tree node found, using defaults\n");
         return;
+    }
 
     of_property_read_u32(np, "sampling-rate-hz", &mpu->sampling_rate_hz);
     of_property_read_u32(np, "accel-range", &mpu->accel_range_g);
     of_property_read_u32(np, "gyro-range", &mpu->gyro_range_dps);
+
+    dev_info(dev,
+             "DT config: rate=%uHz accel=%ug gyro=%udps\n",
+             mpu->sampling_rate_hz,
+             mpu->accel_range_g,
+             mpu->gyro_range_dps);
 }
 
 /* ---------- Apply Config ---------- */
@@ -118,6 +128,11 @@ static void mpu6050_apply_config(struct mpu6050_dev *mpu)
 
     i2c_smbus_write_byte_data(mpu->client, MPU6050_ACCEL_CFG, a);
     i2c_smbus_write_byte_data(mpu->client, MPU6050_GYRO_CFG, g);
+
+    dev_dbg(&mpu->client->dev,
+            "config applied accel=%u gyro=%u\n",
+            mpu->accel_range_g,
+            mpu->gyro_range_dps);
 }
 
 /* ---------- IRQ Handler ---------- */
@@ -143,11 +158,13 @@ static int mpu6050_open(struct inode *inode, struct file *file)
         return -ENODEV;
 
     file->private_data = mpu;
+    pr_info("mpu6050%d opened\n", mpu->minor);
     return 0;
 }
 
 static int mpu6050_release(struct inode *inode, struct file *file)
 {
+    pr_info("mpu6050 closed\n");
     file->private_data = NULL;
     return 0;
 }
@@ -202,9 +219,15 @@ static long mpu6050_ioctl(struct file *file,
     mutex_lock(&mpu->lock);
 
     if (cmd == MPU6050_SET_ACCEL_RANGE)
+    {
         mpu->accel_range_g = val;
+        pr_info("ioctl: accel range set to %d\n", val);
+    }
     else if (cmd == MPU6050_SET_GYRO_RANGE)
+    {
         mpu->gyro_range_dps = val;
+        pr_info("ioctl: gyro range set to %d\n", val);
+    }
     else
     {
         mutex_unlock(&mpu->lock);
@@ -255,6 +278,7 @@ SYSFS_RW(sampling_rate_hz);
 static int mpu6050_suspend(struct device *dev)
 {
     struct mpu6050_dev *mpu = dev_get_drvdata(dev);
+    dev_info(dev, "suspend\n");
     i2c_smbus_write_byte_data(mpu->client, MPU6050_PWR_MGMT1, 0x40);
     return 0;
 }
@@ -262,6 +286,7 @@ static int mpu6050_suspend(struct device *dev)
 static int mpu6050_resume(struct device *dev)
 {
     struct mpu6050_dev *mpu = dev_get_drvdata(dev);
+    dev_info(dev, "resume\n");
     i2c_smbus_write_byte_data(mpu->client, MPU6050_PWR_MGMT1, 0x00);
     mpu6050_apply_config(mpu);
     return 0;
@@ -279,6 +304,8 @@ static int mpu6050_probe(struct i2c_client *client)
     struct mpu6050_dev *mpu;
     int ret;
     u8 whoami;
+
+    dev_info(&client->dev, "probe called\n");
 
     mpu = kzalloc(sizeof(*mpu), GFP_KERNEL);
     if (!mpu)
@@ -299,6 +326,7 @@ static int mpu6050_probe(struct i2c_client *client)
     whoami = i2c_smbus_read_byte_data(client, MPU6050_WHO_AM_I);
     if (whoami != 0x68)
     {
+        dev_err(&client->dev, "WHO_AM_I mismatch\n");
         ret = -ENODEV;
         goto err_free;
     }
@@ -316,6 +344,7 @@ static int mpu6050_probe(struct i2c_client *client)
             goto err_free;
 
         i2c_smbus_write_byte_data(client, MPU6050_INT_ENABLE, 0x01);
+        dev_info(&client->dev, "IRQ enabled (%d)\n", mpu->irq);
     }
 
     mpu->minor = ida_alloc(&mpu6050_ida, GFP_KERNEL);
@@ -356,6 +385,8 @@ static int mpu6050_remove(struct i2c_client *client)
 {
     struct mpu6050_dev *mpu = i2c_get_clientdata(client);
 
+    dev_info(&client->dev, "remove called\n");
+
     device_remove_file(&client->dev, &dev_attr_accel_range_g);
     device_remove_file(&client->dev, &dev_attr_gyro_range_dps);
     device_remove_file(&client->dev, &dev_attr_sampling_rate_hz);
@@ -367,7 +398,6 @@ static int mpu6050_remove(struct i2c_client *client)
     if (mpu->irq > 0)
         free_irq(mpu->irq, mpu);
 
-    mpu->present = false;
     kfree(mpu);
     return 0;
 }
@@ -395,11 +425,10 @@ static struct i2c_driver mpu6050_driver = {
 
 static int __init mpu6050_init(void)
 {
-    int ret;
+    pr_info("mpu6050: module init\n");
 
-    ret = alloc_chrdev_region(&mpu6050_devt, 0, MAX_DEVICES, DRIVER_NAME);
-    if (ret)
-        return ret;
+    if (alloc_chrdev_region(&mpu6050_devt, 0, MAX_DEVICES, DRIVER_NAME))
+        return -EINVAL;
 
     mpu6050_class = class_create(THIS_MODULE, DRIVER_NAME);
     if (IS_ERR(mpu6050_class))
@@ -413,6 +442,8 @@ static int __init mpu6050_init(void)
 
 static void __exit mpu6050_exit(void)
 {
+    pr_info("mpu6050: module exit\n");
+
     i2c_del_driver(&mpu6050_driver);
     class_destroy(mpu6050_class);
     unregister_chrdev_region(mpu6050_devt, MAX_DEVICES);
@@ -422,5 +453,5 @@ module_init(mpu6050_init);
 module_exit(mpu6050_exit);
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Riddhi Sawarkar");
-MODULE_DESCRIPTION("MPU6050 Multi-Device DT + IRQ + sysfs + PM Linux Driver");
+MODULE_AUTHOR("Riddhi Sawarkar, Harsh Randive, Mrunal Deshpande, Siddharth Patil");
+MODULE_DESCRIPTION("MPU6050 Deice Driver");

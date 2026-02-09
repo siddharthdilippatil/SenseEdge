@@ -6,7 +6,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 
-/* ioctl commands (must match driver) */
+/* ioctl commands  */
 #define MPU6050_SET_ACCEL_RANGE _IOW('m', 1, int)
 #define MPU6050_SET_GYRO_RANGE _IOW('m', 2, int)
 
