@@ -2,7 +2,7 @@
  * mpu6050.h
  *
  *  Created on: Nov 27, 2025
- *      Author: siddharthpatil
+ *      Author: SenseEdge
  */
 
 #ifndef MPU6050_H_
