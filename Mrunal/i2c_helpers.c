@@ -20,6 +20,10 @@
 #define MPU6050_GYRO_YOUT_H 0x45
 #define MPU6050_GYRO_ZOUT_H 0x47
 
+/*
+ *      Author: Mrunal Deshpande
+ */
+
 static int mpu6050_write_reg(struct i2c_client *client,
                              u8 reg, u8 val)
 {

@@ -6,17 +6,16 @@
 
 #define PCHAR_BUF_SIZE 256
 
+/*
+ *      Author: Harsh Randive
+ */
+
 /* ---------- Device Private Structure ---------- */
 struct pchar_dev
 {
     struct cdev cdev;
     struct kfifo buffer;
     struct mutex lock;
-
-    /* Placeholder:
-     * - Member 3 can attach interrupt state
-     * - Member 2 can link sensor backend
-     */
 };
 
 /* ---------- OPEN ---------- */

@@ -10,6 +10,10 @@
 #define DRIVER_NAME "mpu6050"
 #define MAX_DEVICES 8
 
+/*
+ *      Author: Siddharth Patil
+ */
+
 /* ================= GLOBAL CHAR FRAMEWORK ================= */
 
 static dev_t mpu_devt;
@@ -59,7 +63,6 @@ static int mpu_release(struct inode *inode, struct file *file)
 /*
  * NOTE:
  * Actual read/write/ioctl logic is implemented
- * by MEMBER 3 and MEMBER 1.
  * This layer only routes calls.
  */
 
@@ -67,14 +70,14 @@ static ssize_t mpu_read(struct file *file,
                         char __user *buf,
                         size_t count, loff_t *ppos)
 {
-    /* ---- HANDLED BY MEMBER 3 ---- */
+
     return -EINVAL;
 }
 
 static long mpu_ioctl(struct file *file,
                       unsigned int cmd, unsigned long arg)
 {
-    /* ---- HANDLED BY MEMBER 3 ---- */
+
     return -EINVAL;
 }
 

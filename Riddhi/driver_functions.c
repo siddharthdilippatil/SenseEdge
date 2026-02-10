@@ -1,4 +1,7 @@
 /* ---------- IOCTL Handling ---------- */
+/*
+ *      Author: Riddhi Sawarkar
+ */
 
 static long mpu6050_ioctl(struct file *file,
                           unsigned int cmd,
@@ -207,7 +210,7 @@ static struct i2c_driver mpu6050_driver = {
     .driver = {
         .name = DRIVER_NAME,
         .of_match_table = mpu6050_of_match,
-        .pm = &mpu6050_pm_ops, /* <-- Member-3 contribution */
+        .pm = &mpu6050_pm_ops,
     },
     .probe_new = mpu6050_probe,
     .remove = mpu6050_remove,

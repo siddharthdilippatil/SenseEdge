@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-
+/*
+ *      Author: Harsh Randive
+ */
 /* ioctl commands  */
 #define MPU6050_SET_ACCEL_RANGE _IOW('m', 1, int)
 #define MPU6050_SET_GYRO_RANGE _IOW('m', 2, int)

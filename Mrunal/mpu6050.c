@@ -2,7 +2,7 @@
  * mpu6050.c
  *
  *  Created on: Nov 27, 2025
- *      Author: senseedge
+ *      Author: Mrunal Deshpande
  */
 
 #include "mpu6050.h"
